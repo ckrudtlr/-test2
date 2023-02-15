@@ -1,0 +1,27 @@
+name: Authenticate with Google Cloud
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  GCP_PROJECT_ID: <your-project-id>
+  GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+  GCP_AUTH_REDIRECT_URI: http://localhost:8080/
+
+jobs:
+  authenticate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y python3-pip
+          pip3 install pydata-google-auth google-auth google-auth-oauthlib google-auth-httplib2
+      - name: Authenticate with Google Cloud
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        run: |
+          python3 -c 'import pydata_google_auth; pydata_google_auth.get_user_credentials(["https://www.googleapis.com/auth/cloud-platform", "https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/bigquery"], auth_local_webserver=True, redirect_uri="${{ env.GCP_AUTH_REDIRECT_URI }}")'
